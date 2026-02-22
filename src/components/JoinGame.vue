@@ -53,7 +53,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { getSavedGamertag, setSavedGamertag } from '@/utils/storage'
 
 defineProps<{
   isConnecting?: boolean
@@ -70,12 +71,17 @@ const codeInput = ref('')
 const tagInput = ref('')
 const error = ref('')
 
+onMounted(() => {
+  tagInput.value = getSavedGamertag()
+})
+
 const isValid = computed(() => {
   return codeInput.value.length === 6 && tagInput.value.trim().length > 0
 })
 
 function handleSubmit() {
   if (!isValid.value) return
+  setSavedGamertag(tagInput.value.trim())
   emit('join', codeInput.value.toUpperCase(), tagInput.value.trim())
 }
 </script>
