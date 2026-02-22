@@ -1,9 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { usePeerService } from '@/services/peerService'
-import { createGMPeerId, createPlayerPeerId, isValidPeerIdForGame, createMessage } from '@/types'
-import { useLobbyStore } from '@/stores/lobbyStore'
-import { useGameStore } from '@/stores/gameStore'
+import { createGMPeerId, createPlayerPeerId, isValidPeerIdForGame } from '@/types'
 
 export const usePeerStore = defineStore('peer', () => {
   const {
@@ -24,6 +22,7 @@ export const usePeerStore = defineStore('peer', () => {
   let onMessageCallback: ((msg: unknown) => void) | null = null
   let onGMDisconnectedCallback: (() => void) | null = null
   let onPeerDisconnectedCallback: (() => void) | null = null
+  let onPlayerDisconnectedCallback: ((peerId: string) => void) | null = null
 
   function setOnMessage(callback: (msg: unknown) => void) {
     onMessageCallback = callback
@@ -35,6 +34,20 @@ export const usePeerStore = defineStore('peer', () => {
 
   function setOnPeerDisconnected(callback: () => void) {
     onPeerDisconnectedCallback = callback
+  }
+
+  function setOnPlayerDisconnected(callback: (peerId: string) => void) {
+    onPlayerDisconnectedCallback = callback
+  }
+
+  function resetAll() {
+    onMessageCallback = null
+    onGMDisconnectedCallback = null
+    onPeerDisconnectedCallback = null
+    onPlayerDisconnectedCallback = null
+    gamertag.value = ''
+    gameCode.value = ''
+    disconnect()
   }
 
   function initializeAsGM(code: string) {
@@ -53,32 +66,8 @@ export const usePeerStore = defineStore('peer', () => {
       },
       onDisconnection: (conn) => {
         console.log('Player disconnected:', conn.peer)
-        const lobbyStore = useLobbyStore()
-        const gameStore = useGameStore()
-
-        const player =
-          lobbyStore.lobby.find((p) => p.peerId === conn.peer) ||
-          lobbyStore.queue.find((p) => p.peerId === conn.peer)
-        if (player) {
-          lobbyStore.removeFromLobby(player.id)
-          lobbyStore.removeFromQueue(conn.peer)
-          broadcast(
-            createMessage('lobby-update', {
-              lobby: lobbyStore.lobby,
-              queue: lobbyStore.queue,
-            }),
-          )
-        }
-
-        const activePlayer = gameStore.players.find((p) => p.peerId === conn.peer)
-        if (activePlayer) {
-          gameStore.players = gameStore.players.filter((p) => p.peerId !== conn.peer)
-          broadcast(
-            createMessage('player-disconnected', {
-              playerId: activePlayer.id,
-              gamertag: activePlayer.gamertag,
-            }),
-          )
+        if (onPlayerDisconnectedCallback) {
+          onPlayerDisconnectedCallback(conn.peer)
         }
       },
       onMessage: (conn, message) => {
@@ -162,5 +151,7 @@ export const usePeerStore = defineStore('peer', () => {
     setOnMessage,
     setOnGMDisconnected,
     setOnPeerDisconnected,
+    setOnPlayerDisconnected,
+    resetAll,
   }
 })

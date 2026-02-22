@@ -5,6 +5,7 @@ import { useLobbyStore } from '@/stores/lobbyStore'
 import { usePeerStore } from '@/stores/peerStore'
 import { useGameMaster } from '@/composables/useGameMaster'
 import { usePlayer } from '@/composables/usePlayer'
+import { useBeforeUnload } from '@/composables/useBeforeUnload'
 import MainMenu from '@/components/MainMenu.vue'
 import CreateGame from '@/components/CreateGame.vue'
 import JoinGame from '@/components/JoinGame.vue'
@@ -37,6 +38,8 @@ const currentTurn = computed(() => gameStore.currentTurn)
 const players = computed(() => gameStore.players)
 const winner = computed(() => gameStore.winner)
 const isMyTurn = computed(() => gameStore.isMyTurn)
+
+useBeforeUnload(() => currentScreen.value !== 'main')
 
 async function createGame() {
   const code = generateCode()
@@ -96,7 +99,7 @@ function handleMove(position: number) {
 function goBack() {
   gameStore.reset()
   lobbyStore.clearLobby()
-  peerStore.disconnect()
+  peerStore.resetAll()
   generatedCode.value = ''
   joinCode.value = ''
   joinTag.value = ''

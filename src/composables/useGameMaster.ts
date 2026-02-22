@@ -15,6 +15,46 @@ export function useGameMaster(gameCode: string) {
   async function initialize() {
     await peerStore.initializeAsGM(gameCode)
     peerStore.setOnMessage((msg: unknown) => handleMessage(msg as Message))
+    peerStore.setOnPlayerDisconnected(handlePlayerPeerDisconnected)
+  }
+
+  function handlePlayerPeerDisconnected(peerId: string) {
+    console.log('Player peer disconnected:', peerId)
+
+    const player =
+      lobbyStore.lobby.find((p) => p.peerId === peerId) ||
+      lobbyStore.queue.find((p) => p.peerId === peerId)
+    if (player) {
+      lobbyStore.removeFromLobby(player.id)
+      lobbyStore.removeFromQueue(peerId)
+      peerStore.broadcast(
+        createMessage('lobby-update', { lobby: lobbyStore.lobby, queue: lobbyStore.queue }),
+      )
+    }
+
+    const activePlayer = gameStore.players.find((p) => p.peerId === peerId)
+    if (activePlayer) {
+      gameStore.players = gameStore.players.filter((p) => p.peerId !== peerId)
+
+      const remainingPlayer = gameStore.players[0]
+      if (remainingPlayer) {
+        gameStore.winner = remainingPlayer.symbol
+        gameStore.status = 'finished'
+        peerStore.broadcast(
+          createMessage('game-over', {
+            gameState: gameStore.gameState,
+            winner: remainingPlayer.symbol,
+          }),
+        )
+      }
+
+      peerStore.broadcast(
+        createMessage('player-disconnected', {
+          playerId: activePlayer.id,
+          gamertag: activePlayer.gamertag,
+        }),
+      )
+    }
   }
 
   function handleMessage(message: Message) {
@@ -24,9 +64,6 @@ export function useGameMaster(gameCode: string) {
         break
       case 'move-command':
         handleMoveCommand(message)
-        break
-      case 'player-disconnected':
-        handlePlayerDisconnected(message)
         break
     }
   }
@@ -91,18 +128,6 @@ export function useGameMaster(gameCode: string) {
         )
       }
     }
-  }
-
-  function handlePlayerDisconnected(message: Extract<Message, { type: 'player-disconnected' }>) {
-    const { playerId } = message
-    lobbyStore.removeFromLobby(playerId)
-    gameStore.players = gameStore.players.filter((p) => p.id !== playerId)
-    peerStore.broadcast(
-      createMessage('lobby-update', {
-        lobby: lobbyStore.lobby,
-        queue: lobbyStore.queue,
-      }),
-    )
   }
 
   function acceptPlayer(peerId: string) {
