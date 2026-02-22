@@ -25,6 +25,11 @@ export function usePlayer(gameCode: string, gamertag: string) {
       await peerStore.initializeAsPlayer(gameCode, gamertag)
       isConnected.value = true
       peerStore.setOnMessage((msg: unknown) => handleMessage(msg as Message))
+      peerStore.setOnGMDisconnected(() => {
+        connectionError.value = 'Disconnected from GM'
+        isConnected.value = false
+        gameStore.currentScreen = 'main' as Screen
+      })
 
       peerStore.send(
         gmPeerId,
@@ -86,6 +91,11 @@ export function usePlayer(gameCode: string, gamertag: string) {
         gameStore.currentScreen = 'game-over' as Screen
         gameStore.winner = overMsg.winner
         gameStore.setGameState(overMsg.gameState)
+        break
+      }
+      case 'player-disconnected': {
+        const discMsg = message as { playerId: string; gamertag: string }
+        gameStore.players = gameStore.players.filter((p) => p.id !== discMsg.playerId)
         break
       }
     }

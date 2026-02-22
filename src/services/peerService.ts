@@ -7,6 +7,7 @@ export type ConnectionStatus = 'disconnected' | 'connecting' | 'connected' | 'er
 export interface PeerServiceOptions {
   onConnection?: (conn: DataConnection) => void
   onDisconnection?: (conn: DataConnection) => void
+  onPeerDisconnected?: () => void
   onMessage?: (conn: DataConnection, message: Message) => void
   onError?: (error: Error) => void
 }
@@ -51,8 +52,9 @@ export function usePeerService() {
       })
 
       peer.value.on('disconnected', () => {
-        console.log('Peer disconnected')
+        console.log('Peer disconnected from signaling server')
         status.value = 'disconnected'
+        options.onPeerDisconnected?.()
       })
     })
   }
