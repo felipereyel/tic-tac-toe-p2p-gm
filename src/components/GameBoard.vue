@@ -13,7 +13,7 @@
       </div>
     </div>
 
-    <div class="board">
+    <div class="board" :class="{ disabled: !isMyTurn && currentTurn !== null && winner === null }">
       <button
         v-for="(cell, index) in board"
         :key="index"
@@ -81,6 +81,14 @@ h1 {
   color: #42b883;
 }
 
+.status-bar {
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
 .turn-indicator {
   font-size: 1.25rem;
 }
@@ -104,10 +112,19 @@ h1 {
   margin: 0 auto 2rem;
 }
 
+.board.disabled {
+  cursor: not-allowed;
+}
+
+.board.disabled .cell {
+  cursor: not-allowed;
+}
+
 .cell {
   aspect-ratio: 1;
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
+  line-height: 1;
   border: 2px solid var(--color-border, #ddd);
   border-radius: 8px;
   background: var(--color-bg, #f9f9f9);
@@ -115,10 +132,17 @@ h1 {
   transition:
     background-color 0.2s,
     transform 0.1s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .cell:not(:disabled):hover {
   background: var(--color-bg-hover, #eee);
+}
+
+.cell:active {
+  transform: scale(0.98);
 }
 
 .cell:disabled {
