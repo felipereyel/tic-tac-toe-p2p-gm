@@ -70,6 +70,7 @@ function generateCode(): string {
 }
 
 function startJoin() {
+  peerStore.resetAll()
   isWaitingForApproval.value = false
   isConnecting.value = false
   connectionError.value = ''
