@@ -10,6 +10,8 @@
       <p class="label">Share this code with players:</p>
       <div class="code-display">{{ gameCode }}</div>
 
+      <button @click="copyLink" class="btn-copy-link">Copy Game Link</button>
+
       <div class="lobby-section">
         <h2>Lobby</h2>
         <div v-if="lobby.length === 0" class="empty">No players yet</div>
@@ -50,10 +52,11 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
 import type { Player } from '@/types'
 import { GAME_SETTINGS } from '@/utils/settings'
 
-defineProps<{
+const props = defineProps<{
   gameCode: string
   lobby: Player[]
   queue: Player[]
@@ -62,12 +65,28 @@ defineProps<{
 
 const MIN_PLAYERS = GAME_SETTINGS.PLAYER_COUNT
 
-defineEmits<{
+const emit = defineEmits<{
   accept: [peerId: string]
   reject: [peerId: string]
   start: []
   back: []
+  toast: [message: string, type: 'error' | 'success' | 'info']
 }>()
+
+const gameLink = computed(() => {
+  return `${window.location.origin}/?code=${props.gameCode}&is_player=true`
+})
+
+function copyLink() {
+  navigator.clipboard
+    .writeText(gameLink.value)
+    .then(() => {
+      emit('toast', 'Link copied!', 'success')
+    })
+    .catch(() => {
+      emit('toast', 'Failed to copy link', 'error')
+    })
+}
 </script>
 
 <style scoped>
@@ -102,8 +121,25 @@ h1 {
   background: #2c3e50;
   color: #42b883;
   border-radius: 8px;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   border: 2px solid #42b883;
+}
+
+.btn-copy-link {
+  display: block;
+  width: 100%;
+  margin-bottom: 2rem;
+  padding: 0.75rem;
+  font-size: 1rem;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-copy-link:hover {
+  background-color: #2980b9;
 }
 
 .lobby-section h2 {

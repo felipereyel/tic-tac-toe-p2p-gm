@@ -56,7 +56,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { getSavedGamertag, setSavedGamertag } from '@/utils/storage'
 
-defineProps<{
+const props = defineProps<{
   isConnecting?: boolean
   isWaiting?: boolean
   gameCode?: string
@@ -74,6 +74,9 @@ const tagInput = ref('')
 
 onMounted(() => {
   tagInput.value = getSavedGamertag()
+  if (props.gameCode) {
+    codeInput.value = props.gameCode
+  }
 })
 
 const isValid = computed(() => {

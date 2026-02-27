@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { useLobbyStore } from '@/stores/lobbyStore'
 import { usePeerStore } from '@/stores/peerStore'
@@ -20,6 +20,7 @@ const peerStore = usePeerStore()
 const generatedCode = ref('')
 const joinCode = ref('')
 const joinTag = ref('')
+const codeToJoin = ref('')
 const playerComposable = ref<ReturnType<typeof usePlayer> | null>(null)
 const gmComposable = ref<ReturnType<typeof useGameMaster> | null>(null)
 const isConnecting = ref(false)
@@ -43,6 +44,17 @@ const winner = computed(() => gameStore.winner)
 const isMyTurn = computed(() => gameStore.isMyTurn)
 
 useBeforeUnload(() => currentScreen.value !== 'main')
+
+onMounted(() => {
+  const params = new URLSearchParams(window.location.search)
+  const code = params.get('code')
+  const isPlayer = params.get('is_player')
+
+  if (code && isPlayer === 'true') {
+    codeToJoin.value = code.toUpperCase()
+    window.history.replaceState({}, '', window.location.pathname)
+  }
+})
 
 watch(connectionError, (newError) => {
   if (newError && currentScreen.value === 'join') {
@@ -79,6 +91,29 @@ function startJoin() {
   joinTag.value = ''
   gameStore.currentScreen = 'join'
 }
+
+function startJoinWithCode(code: string) {
+  peerStore.resetAll()
+  isWaitingForApproval.value = false
+  isConnecting.value = false
+  connectionError.value = ''
+  toastMessage.value = ''
+  joinCode.value = code
+  joinTag.value = ''
+  gameStore.currentScreen = 'join'
+  gameStore.setAsPlayer('')
+  playerComposable.value = usePlayer(code, '', (error) => {
+    connectionError.value = error
+    toastMessage.value = error
+    toastType.value = 'error'
+  })
+}
+
+watch(codeToJoin, (code) => {
+  if (code) {
+    startJoinWithCode(code)
+  }
+})
 
 async function joinGame(code: string, tag: string) {
   joinCode.value = code
@@ -127,6 +162,11 @@ function handleStopGame() {
   goBack()
 }
 
+function handleToast(message: string, type: 'error' | 'success' | 'info') {
+  toastMessage.value = message
+  toastType.value = type
+}
+
 function goBack() {
   gameStore.reset()
   lobbyStore.clearLobby()
@@ -163,6 +203,7 @@ function goBack() {
       @reject="handleRejectPlayer"
       @start="handleStartGame"
       @back="goBack"
+      @toast="handleToast"
     />
 
     <JoinGame
