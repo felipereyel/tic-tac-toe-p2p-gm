@@ -74,7 +74,8 @@ const emit = defineEmits<{
 }>()
 
 const gameLink = computed(() => {
-  return `${window.location.origin}/?code=${props.gameCode}&is_player=true`
+  const baseUrl = window.location.href.split('?')[0]
+  return `${baseUrl}?code=${props.gameCode}&is_player=true`
 })
 
 function copyLink() {
