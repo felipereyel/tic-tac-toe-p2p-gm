@@ -11,7 +11,7 @@ import {
   type TicTacToeMove,
 } from '@/types'
 
-export function usePlayer(gameCode: string, gamertag: string) {
+export function usePlayer(gameCode: string, gamertag: string, onError?: (error: string) => void) {
   const gameStore = useGameStore()
   const lobbyStore = useLobbyStore()
   const peerStore = usePeerStore()
@@ -26,7 +26,9 @@ export function usePlayer(gameCode: string, gamertag: string) {
       isConnected.value = true
       peerStore.setOnMessage((msg: unknown) => handleMessage(msg as Message))
       peerStore.setOnGMDisconnected(() => {
-        connectionError.value = 'Disconnected from GM'
+        const errorMsg = 'Disconnected from GM'
+        connectionError.value = errorMsg
+        onError?.(errorMsg)
         isConnected.value = false
         gameStore.currentScreen = 'main' as Screen
       })
@@ -39,7 +41,9 @@ export function usePlayer(gameCode: string, gamertag: string) {
         }),
       )
     } catch (err) {
-      connectionError.value = `Failed to connect: ${(err as Error).message}`
+      const errorMsg = `Failed to connect: ${(err as Error).message}`
+      connectionError.value = errorMsg
+      onError?.(errorMsg)
       isConnected.value = false
     }
   }
@@ -48,7 +52,9 @@ export function usePlayer(gameCode: string, gamertag: string) {
     switch (message.type) {
       case 'join-rejected': {
         const rejMsg = message as { reason: string }
-        connectionError.value = `Join rejected: ${rejMsg.reason}`
+        const errorMsg = `Join rejected: ${rejMsg.reason}`
+        connectionError.value = errorMsg
+        onError?.(errorMsg)
         isConnected.value = false
         gameStore.currentScreen = 'main' as Screen
         break

@@ -60,16 +60,17 @@ defineProps<{
   isConnecting?: boolean
   isWaiting?: boolean
   gameCode?: string
+  error?: string
 }>()
 
 const emit = defineEmits<{
   join: [code: string, gamertag: string]
   back: []
+  error: [message: string]
 }>()
 
 const codeInput = ref('')
 const tagInput = ref('')
-const error = ref('')
 
 onMounted(() => {
   tagInput.value = getSavedGamertag()

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { useGameStore } from '@/stores/gameStore'
 import { useLobbyStore } from '@/stores/lobbyStore'
 import { usePeerStore } from '@/stores/peerStore'
@@ -11,6 +11,7 @@ import CreateGame from '@/components/CreateGame.vue'
 import JoinGame from '@/components/JoinGame.vue'
 import LobbyView from '@/components/LobbyView.vue'
 import GameBoard from '@/components/GameBoard.vue'
+import ToastNotification from '@/components/ToastNotification.vue'
 
 const gameStore = useGameStore()
 const lobbyStore = useLobbyStore()
@@ -24,6 +25,8 @@ const gmComposable = ref<ReturnType<typeof useGameMaster> | null>(null)
 const isConnecting = ref(false)
 const isWaitingForApproval = ref(false)
 const connectionError = ref('')
+const toastMessage = ref('')
+const toastType = ref<'error' | 'success' | 'info'>('error')
 
 const currentScreen = computed(() => gameStore.currentScreen)
 const isGM = computed(() => gameStore.isGM)
@@ -40,6 +43,13 @@ const winner = computed(() => gameStore.winner)
 const isMyTurn = computed(() => gameStore.isMyTurn)
 
 useBeforeUnload(() => currentScreen.value !== 'main')
+
+watch(connectionError, (newError) => {
+  if (newError && currentScreen.value === 'join') {
+    toastMessage.value = newError
+    toastType.value = 'error'
+  }
+})
 
 async function createGame() {
   const code = generateCode()
@@ -66,8 +76,13 @@ async function joinGame(code: string, tag: string) {
   isConnecting.value = true
   isWaitingForApproval.value = false
   connectionError.value = ''
+  toastMessage.value = ''
 
-  playerComposable.value = usePlayer(code, tag)
+  playerComposable.value = usePlayer(code, tag, (error) => {
+    connectionError.value = error
+    toastMessage.value = error
+    toastType.value = 'error'
+  })
 
   try {
     await playerComposable.value?.connectToGameMaster()
@@ -108,11 +123,18 @@ function goBack() {
   isConnecting.value = false
   isWaitingForApproval.value = false
   connectionError.value = ''
+  toastMessage.value = ''
 }
 </script>
 
 <template>
   <div class="app">
+    <ToastNotification
+      v-if="toastMessage"
+      :message="toastMessage"
+      :type="toastType"
+      :duration="4000"
+    />
     <MainMenu
       v-if="currentScreen === 'main'"
       @create="createGame"
