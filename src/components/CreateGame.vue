@@ -33,7 +33,12 @@
       </div>
 
       <div class="controls">
-        <button @click="$emit('start')" :disabled="lobby.length < 2" class="btn-start">
+        <button
+          @click="$emit('start')"
+          :disabled="lobby.length < MIN_PLAYERS"
+          class="btn-start"
+          :class="{ ready: lobby.length >= MIN_PLAYERS }"
+        >
           Start Game
         </button>
         <button @click="$emit('back')" class="btn-back">Back</button>
@@ -46,6 +51,7 @@
 
 <script setup lang="ts">
 import type { Player } from '@/types'
+import { GAME_SETTINGS } from '@/utils/settings'
 
 defineProps<{
   gameCode: string
@@ -53,6 +59,8 @@ defineProps<{
   queue: Player[]
   error?: string
 }>()
+
+const MIN_PLAYERS = GAME_SETTINGS.PLAYER_COUNT
 
 defineEmits<{
   accept: [peerId: string]
@@ -177,6 +185,22 @@ h1 {
 .btn-start:disabled {
   background-color: #a0dcc4;
   cursor: not-allowed;
+}
+
+.btn-start.ready {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(66, 184, 131, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(66, 184, 131, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(66, 184, 131, 0);
+  }
 }
 
 .btn-back {

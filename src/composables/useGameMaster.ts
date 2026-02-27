@@ -3,6 +3,7 @@ import { useGameStore, type Screen } from '@/stores/gameStore'
 import { useLobbyStore } from '@/stores/lobbyStore'
 import { usePeerStore } from '@/stores/peerStore'
 import { ticTacToeLogic } from '@/services/gameLogic'
+import { GAME_SETTINGS } from '@/utils/settings'
 import { createMessage, type Message, type Player, type TicTacToeMove } from '@/types'
 
 export function useGameMaster(gameCode: string) {
@@ -74,6 +75,11 @@ export function useGameMaster(gameCode: string) {
         message.peerId,
         createMessage('join-rejected', { reason: 'Game already started' }),
       )
+      return
+    }
+
+    if (lobbyStore.lobby.length >= GAME_SETTINGS.PLAYER_COUNT) {
+      peerStore.send(message.peerId, createMessage('join-rejected', { reason: 'Lobby is full' }))
       return
     }
 
@@ -151,7 +157,7 @@ export function useGameMaster(gameCode: string) {
   }
 
   function startGame() {
-    if (lobbyStore.lobby.length < 2) {
+    if (lobbyStore.lobby.length < GAME_SETTINGS.PLAYER_COUNT) {
       gameStore.error = 'Need at least 2 players to start'
       return
     }
