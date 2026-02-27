@@ -129,17 +129,21 @@ h1 {
   display: block;
   width: 100%;
   margin-bottom: 2rem;
-  padding: 0.75rem;
-  font-size: 1rem;
-  background-color: #3498db;
-  color: white;
-  border: none;
+  padding: 0.6rem;
+  font-size: 0.875rem;
+  background-color: transparent;
+  color: #42b883;
+  border: 2px solid #42b883;
   border-radius: 6px;
   cursor: pointer;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
 }
 
 .btn-copy-link:hover {
-  background-color: #2980b9;
+  background-color: #42b883;
+  color: white;
 }
 
 .lobby-section h2 {
