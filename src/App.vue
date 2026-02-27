@@ -69,6 +69,16 @@ function generateCode(): string {
   return code
 }
 
+function startJoin() {
+  isWaitingForApproval.value = false
+  isConnecting.value = false
+  connectionError.value = ''
+  toastMessage.value = ''
+  joinCode.value = ''
+  joinTag.value = ''
+  gameStore.currentScreen = 'join'
+}
+
 async function joinGame(code: string, tag: string) {
   joinCode.value = code
   joinTag.value = tag
@@ -140,11 +150,7 @@ function goBack() {
       :type="toastType"
       :duration="4000"
     />
-    <MainMenu
-      v-if="currentScreen === 'main'"
-      @create="createGame"
-      @join="gameStore.currentScreen = 'join'"
-    />
+    <MainMenu v-if="currentScreen === 'main'" @create="createGame" @join="startJoin" />
 
     <CreateGame
       v-else-if="currentScreen === 'create'"
