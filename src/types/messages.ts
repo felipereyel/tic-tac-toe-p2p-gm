@@ -12,6 +12,7 @@ export type MessageType =
   | 'game-started'
   | 'game-over'
   | 'lobby-update'
+  | 'game-stopped'
 
 export interface BaseMessage {
   type: MessageType
@@ -80,6 +81,10 @@ export interface LobbyUpdateMessage extends BaseMessage {
   queue: Player[]
 }
 
+export interface GameStoppedMessage extends BaseMessage {
+  type: 'game-stopped'
+}
+
 export type Message =
   | JoinRequestMessage
   | JoinAcceptedMessage
@@ -92,6 +97,7 @@ export type Message =
   | GameStartedMessage
   | GameOverMessage
   | LobbyUpdateMessage
+  | GameStoppedMessage
 
 export function createMessage<T extends Message>(
   type: T['type'],

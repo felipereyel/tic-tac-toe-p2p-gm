@@ -104,6 +104,12 @@ export function usePlayer(gameCode: string, gamertag: string, onError?: (error: 
         gameStore.players = gameStore.players.filter((p) => p.id !== discMsg.playerId)
         break
       }
+      case 'game-stopped': {
+        onError?.('GM killed the game')
+        gameStore.reset()
+        gameStore.currentScreen = 'main' as Screen
+        break
+      }
     }
   }
 

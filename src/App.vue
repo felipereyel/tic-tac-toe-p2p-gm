@@ -111,6 +111,11 @@ function handleMove(position: number) {
   playerComposable.value?.makeMove(position)
 }
 
+function handleStopGame() {
+  gmComposable.value?.stopGame()
+  goBack()
+}
+
 function goBack() {
   gameStore.reset()
   lobbyStore.clearLobby()
@@ -180,8 +185,10 @@ function goBack() {
       :winner="winner"
       :is-my-turn="isMyTurn"
       :my-symbol="mySymbol"
+      :is-g-m="isGM"
       @move="handleMove"
       @play-again="goBack"
+      @stop-game="handleStopGame"
     />
 
     <div v-else class="game-over">

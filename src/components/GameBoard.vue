@@ -32,6 +32,8 @@
     </div>
 
     <button v-if="winner" @click="$emit('playAgain')" class="btn-play-again">Play Again</button>
+
+    <button v-if="isGM" @click="$emit('stopGame')" class="btn-stop-game">Stop Game</button>
   </div>
 </template>
 
@@ -45,11 +47,13 @@ const props = defineProps<{
   winner: PlayerSymbol | 'draw' | null
   isMyTurn: boolean
   mySymbol?: PlayerSymbol | null
+  isGM?: boolean
 }>()
 
 defineEmits<{
   move: [position: number]
   playAgain: []
+  stopGame: []
 }>()
 
 function getPlayerName(symbol: 'X' | 'O'): string {
@@ -180,6 +184,17 @@ h1 {
   padding: 0.75rem 2rem;
   font-size: 1rem;
   background-color: #42b883;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-stop-game {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.875rem;
+  background-color: #e74c3c;
   color: white;
   border: none;
   border-radius: 6px;

@@ -169,11 +169,19 @@ export function useGameMaster(gameCode: string) {
     gameStore.currentScreen = 'game' as Screen
   }
 
+  function stopGame() {
+    peerStore.broadcast(createMessage('game-stopped', {}))
+    gameStore.reset()
+    lobbyStore.clearLobby()
+    gameStarted.value = false
+  }
+
   return {
     initialize,
     acceptPlayer,
     rejectPlayer,
     startGame,
+    stopGame,
     gameStarted,
   }
 }
